@@ -1,0 +1,321 @@
+<ui>
+	<block className="AddBotWidget">
+		<bind name="firstEntityDH" value="'trainingRoomEntity'; CC.trainingRoomWindowState"/>
+		<bind name="watchDH" value="'windowState'; ['trainingRoomEntity.trainingRoomWindowState.evUpdate']; trainingRoomEntity.trainingRoomWindowState.state"/>
+		<bind name="watchDH" value="'notReadyWindowState'; ['trainingRoomEntity.trainingRoomWindowState.evUpdate']; trainingRoomEntity.trainingRoomWindowState.notReadyWindowState"/>
+		<bind name="watchDH" value="'windowInset'; ['trainingRoomEntity.trainingRoomWindowState.evUpdate']; trainingRoomEntity.trainingRoomWindowState.inset"/>
+		<bind name="watchDH" value="'windowInsetLabel'; ['trainingRoomEntity.trainingRoomWindowState.evUpdate']; trainingRoomEntity.trainingRoomWindowState.insetLabel"/>
+		<bind name="watchDH" value="'isBotsAIEnabled'; ['trainingRoomEntity.trainingRoom.evUpdate']; trainingRoomEntity.trainingRoom.isBotsAIEnabled"/>
+		<styleClass value="$Fullsize"/>
+		<!--mod-->
+		<bind name="collectionDH" value="CC.ship; 'shipsCollection'"/>
+		<!--mod-->
+		<bind name="collectionDH" value="CC.userPrefs; 'userPrefsCollection'"/>
+		<bind name="entityDH" value="'userPrefsEntity'; userPrefsCollection[0].id"/>
+		<bind name="watchDH" value="'userPrefs'; ['userPrefsEntity.userPrefs.evUserPrefsChanged']; userPrefsEntity.userPrefs.userPrefs"/>
+		<bind name="watch" value="'selectedShipIdFromPrefs'; Number(userPrefs.trainingInfotipBotShipId)"/>
+		<bind name="primaryEntityDH" value="'shipFromPrefs'; CC.ship; selectedShipIdFromPrefs"/>
+		<bind name="watch" value="'selectedShipId'; shipsCollection.indexOf(shipFromPrefs) &gt;= 0 ? selectedShipIdFromPrefs : shipsCollection[0].ship.id"/>
+		<bind name="watch" value="'isActive'; userPrefs.trainingInfotipBotCanMove == null ? false : userPrefs.trainingInfotipBotCanMove"/>
+		<bind name="watch" value="'isArmed'; userPrefs.trainingInfotipBotCanShoot == null ? false : userPrefs.trainingInfotipBotCanShoot"/>
+		<bind name="watch" value="'_curItemIndex'; userPrefs.trainingInfotipBotAILevel == null ? 0 : userPrefs.trainingInfotipBotAILevel"/>
+		<bind name="var" value="{BOT_AI_LEVELS: [3, 6, 11]}"/>
+		<bind name="watch" value="'hasAvailableShips'; shipsCollection.length &gt; 0"/>
+		<bind name="firstEntityDH" value="'selfPlayerEntity'; CC.accountSelf"/>
+		<bind name="watchDH" value="'selfPreBattleId'; ['selfPlayerEntity.preBattlePlayerSimple.evPreBattleIdChanged']; selfPlayerEntity.preBattlePlayerSimple.preBattleId"/>
+		<bind name="collectionDH" value="CC.preBattlePlayerSimple; 'preBattlePlayers'; 'byPreBattleAndTeam.' + selfPreBattleId + '_' + _teamId + '.preBattleMembers'"/>
+		<bind name="collectionDH" value="CC.preBattlePlayerSimple; 'preBattleInvitedPlayers'; 'byPreBattleAndTeam.' + selfPreBattleId + '_' + _teamId + '.invitedPlayers'"/>
+		<bind name="watchDH" value="'trainingRoomTeamSize'; ['trainingRoomEntity.trainingRoom.evUpdate']; trainingRoomEntity.trainingRoom.teamSize"/>
+		<bind name="watch" value="'curPlayersInFormation'; (preBattlePlayers.length + preBattleInvitedPlayers.length)"/>
+		<bind name="watch" value="'hasFreePlacesInFormation'; (trainingRoomTeamSize - curPlayersInFormation) &gt; 0"/>
+		<bind name="watch" value="'isBotAddEnabled'; hasAvailableShips &amp;&amp; hasFreePlacesInFormation"/>
+		<block>
+			<style>
+				<width value="100%"/>
+				<marginTop value="6px"/>
+			</style>
+			<bind name="catch" value="'evSelectBotShip'"/>
+			<bind name="dispatch" value="'evSelectBotShip'; 'Tooltip.Close'; {}; 1"/>
+			<bind name="instance" value="'SelectedShipForBot'; {_shipID: selectedShipId, _enabled: hasAvailableShips}"/>
+		</block>
+		<block>
+			<bind name="visible" value="isBotsAIEnabled"/>
+			<style>
+				<width value="100%"/>
+				<paddingLeft value="10px"/>
+				<paddingRight value="10px"/>
+				<marginTop value="5px"/>
+			</style>
+			<block>
+				<block>
+					<params>
+						<param name="name" value="botActiveCb"/>
+					</params>
+					<style>
+						<width value="100%"/>
+						<marginBottom value="8px"/>
+						<marginTop value="8px"/>
+					</style>
+					<bind name="instance" value="'CheckBox'; {	_isChecked: isActive,
+												_label: 'IDS_BOT_ACTIVE',
+												_action: 'setUserPref',
+												_statusTooltipData: {_text: 'IDS_BOT_ACTIVE_TOOLTIP'},
+												_actionParams: {value: !isActive, name: 'trainingInfotipBotCanMove'}}"/>
+				</block>
+				<block>
+					<params>
+						<param name="name" value="botArmedCb"/>
+					</params>
+					<style>
+						<width value="100%"/>
+						<marginBottom value="4px"/>
+					</style>
+					<bind name="instance" value="'CheckBox'; {	_isChecked: isArmed,
+												_label: 'IDS_BOT_ARMED',
+												_action: 'setUserPref',
+												_statusTooltipData: {_text: 'IDS_BOT_ARMED_TOOLTIP'},
+												_actionParams: {value: !isArmed, name: 'trainingInfotipBotCanShoot'}}"/>
+				</block>
+			</block>
+			<block>
+				<style>
+					<width value="100%"/>
+					<marginLeft value="2px"/>
+					<marginBottom value="8px"/>
+				</style>
+				<block type="text">
+					<style>
+						<alpha value="0.85"/>
+						<marginRight value="4px"/>
+						<marginTop value="8px"/>
+					</style>
+					<styleClass value="$TextDefault17NM"/>
+					<default_text value="IDS_AI_LEVEL"/>
+				</block>
+				<bind name="catch" value="'ItemChooser.aiLevelSelected'"/>
+				<bind name="action" value="'ItemChooser.aiLevelSelected'; 'setUserPref'; {value: _curItemIndex, name: 'trainingInfotipBotAILevel'}"/>
+				<bind name="instance" value="'ItemChooser'; {_items: BOT_AI_LEVELS, curIndex: _curItemIndex, _name: 'ItemChooserBotLevelAI',
+											_choosedItemRenderer: 'AILevelChoosedItemRenderer', _listItemRenderer: 'AILevelListItemRenderer',
+											onItemSelectedEvent: 'aiLevelSelected'}"/>
+				<style>
+					<flow value="horizontal"/>
+				</style>
+			</block>
+		</block>
+		<block>
+			<params>
+				<param name="name" value="addBotBtn"/>
+			</params>
+			<style>
+				<marginTop value="5px"/>
+			</style>
+			<styleClass value="$MiddleAligned"/>
+			<bind name="tooltip" value="'SimpleStatusTooltip'; !(isBotAddEnabled) ? {	_text: !(hasAvailableShips) 	? 'IDS_NO_SUITABLE_SHIPS'
+																									: 'IDS_NO_FREE_PLACES_IN_FORMATION',
+																	_unifiedStatus: SC.Ui_styles.UNIFIED_STATUS.WARNING } : null; 0"/>
+			<bind name="instance" value="'DefaultButton'; {	_enabled: isBotAddEnabled, _width: '150px', _label: 'IDS_ADD', 
+											_action: 'TrainingRoomProxy.addBot',
+											_actionParams: { botAiLevel: BOT_AI_LEVELS[_curItemIndex],
+											canMove: isActive, canShoot: isArmed, shipId: selectedShipId,
+											teamId: _teamId} }"/>
+		</block>
+	</block>
+	<block className="SelectedShipForBot">
+		<params>
+			<param name="name" value="SelectedShipForBot"/>
+		</params>
+		<bind name="controller" value="'lesta.unbound.controls.UbInteractiveController'"/>
+		<!--mod-->
+		<bind name="collectionDH" value="CC.ship; 'suitableShips'"/>
+		<!--mod-->
+		<bind name="collectionFields" value="'suitableShips'; ['ship.country', 'ship.subtype']; [Country.getOrderSortIndex, ShipTypes.getOrderSortIndex]"/>
+		<style>
+			<width value="100%"/>
+			<height value="60px"/>
+		</style>
+		<block className="dock_submenu_item_bg" type="native">
+			<styleClass value="$PxHorizontalCorrection"/>
+			<styleClass value="$FullsizeAbsolute"/>
+			<bind name="transition" value="(rollOver || countryContextMenuVisible); 0.15; {alpha: 0}; {alpha: 1.0}"/>
+			<bind name="tooltip" value="'CountryContextMenu'; { _countries: suitableShips_ship_country, _subtypes: suitableShips_ship_subtype }; 3; null; 'countryContextMenuVisible'"/>
+			<bind name="dispatch" value="'click'; 'Tooltip.Open'; {behaviour: TooltipBehaviour.contextMenu}"/>
+		</block>
+		<block>
+			<bind name="visible" value="_enabled"/>
+			<style>
+				<hitTest value="false"/>
+			</style>
+			<styleClass value="$MiddleAligned"/>
+			<styleClass value="$MiddleVAligned"/>
+			<bind name="primaryEntityDH" value="'shipEntity'; CC.ship; _shipID; 'evUpdate'"/>
+			<bind name="watchDH" value="'shipInfo'; ['shipEntity.ship.evUpdate', 'shipEntity.ship.evCurrentSkinChanged', 'shipEntity.ship.evFlagNameWithCrewChanged']; shipEntity.ship"/>
+			<block>
+				<bind name="instance" value="'BotShipTitleWithIconAndLevel'; {_shipID: _shipID, _hideTypeIcon: true}"/>
+			</block>
+			<block>
+				<style>
+					<width value="122px"/>
+					<height value="22px"/>
+					<marginLeft value="12px"/>
+					<marginTop value="-2px"/>
+				</style>
+				<bind name="style" value="'backgroundImage'; 'url:' + shipInfo.pathTinyIcon"/>
+			</block>
+			<style>
+				<flow value="horizontal"/>
+			</style>
+		</block>
+		<block>
+			<bind name="visible" value="!(_enabled)"/>
+			<style>
+				<width value="100%"/>
+				<hitTest value="false"/>
+			</style>
+			<styleClass value="$MiddleVAligned"/>
+			<block>
+				<styleClass value="$MiddleAligned"/>
+				<block className="icon_warning_orange" type="native">
+					<style>
+						<marginTop value="5px"/>
+						<marginRight value="2px"/>
+					</style>
+				</block>
+				<block type="text">
+					<styleClass value="$TextDefaultBold"/>
+					<bind name="class" value="'$FontColorOrange'"/>
+					<style>
+						<leading value="-3"/>
+					</style>
+					<bind name="text" value="toUpperCase(tr('IDS_NO_SUITABLE_SHIPS'))"/>
+				</block>
+				<style>
+					<flow value="horizontal"/>
+				</style>
+			</block>
+		</block>
+	</block>
+	<block className="CountryMenuItem">
+		<bind name="name" value="'CountryMenuItem_' + $value"/>
+		<styleClass value="$ContextMenuListItem"/>
+		<!--mod-->
+		<bind name="collectionDH" value="CC.ship; 'suitableShipsRoot'"/>
+		<!--mod-->
+		<bind name="collectionDesign" value="DES_suitableShipsRoot; 'suitableShips'; {'filter': $entity.ship.country == $value}"/>
+		<bind name="tooltip" value="'ShipTypeContextSubMenu'; (suitableShips.length &gt; 0) ? { _subtypes: _subtypes, _country: $value} : null; 13; null; 'shipTypeContextMenuVisible'"/>
+		<bind name="tooltip" value="'SimpleStatusTooltip'; (suitableShips.length == 0) ? { _text: 'IDS_NO_SUITABLE_SHIPS', _unifiedStatus: SC.Ui_styles.UNIFIED_STATUS.WARNING } : null; 0"/>
+		<block className="dock_submenu_item" type="native">
+			<styleClass value="$Fullsize"/>
+			<bind name="style" value="'alpha'; (suitableShips.length == 0) ? 0.4 : 1"/>
+			<bind name="selected" value="shipTypeContextMenuVisible"/>
+			<block>
+				<style>
+					<width value="100%"/>
+					<height value="100%"/>
+					<hitTest value="false"/>
+				</style>
+				<styleClass value="$ContextMenuListItemContent"/>
+				<block type="text">
+					<styleClass value="$TextDefault"/>
+					<styleClass value="$MiddleVAligned"/>
+					<bind name="text" value="tr(toUpperCase('IDS_' + $value))"/>
+				</block>
+				<block className="button_expand_h" type="native">
+					<bind name="visible" value="(suitableShips.length &gt; 0)"/>
+					<style>
+						<position value="absolute"/>
+						<right value="3px"/>
+					</style>
+					<styleClass value="$MouseDisable"/>
+					<styleClass value="$MiddleVAligned"/>
+				</block>
+				<style>
+					<flow value="horizontal"/>
+				</style>
+			</block>
+		</block>
+	</block>
+	<block className="ShipTypeMenuItem">
+		<bind name="name" value="'ShipTypeMenuItem_' + $value"/>
+		<styleClass value="$ContextMenuListItem"/>
+		<!--mod-->
+		<bind name="var" value="{disabledShipGroups: [
+									SC.Ships.SHIP_GROUPS.UNAVAILABLE,
+									SC.Ships.SHIP_GROUPS.PRESERVED,
+									SC.Ships.SHIP_GROUPS.DISABLED,
+									SC.Ships.SHIP_GROUPS.COOP_ONLY,
+									SC.Ships.SHIP_GROUPS.EVENT
+								]}"/>
+		<bind name="collectionDH" value="CC.ship; 'suitableShipsRoot'"/>
+		<bind name="collectionDesign" value="DES_suitableShipsRoot; 'suitableShips';
+					{	'filter': ($entity.ship.subtype == $value) &amp;&amp; ($entity.ship.country == _country) &amp;&amp; !isIn($entity.ship.group, disabledShipGroups),
+						'sort':['ship.level'],
+						'sortOrder' : [0]
+					};
+					['ship.evGroupChanged']
+					"/>
+		<!--mod-->
+		<bind name="tooltip" value="'ShipContextSubMenu'; (suitableShips.length &gt; 0) ? { _suitableShips: suitableShips, _country: _country } : null; 13; null; 'shipContextMenuVisible'"/>
+		<bind name="tooltip" value="'SimpleStatusTooltip'; (suitableShips.length == 0) ? { _text: 'IDS_NO_SUITABLE_SHIPS', _unifiedStatus: SC.Ui_styles.UNIFIED_STATUS.WARNING } : null; 0"/>
+		<block className="dock_submenu_item" type="native">
+			<styleClass value="$Fullsize"/>
+			<bind name="style" value="'alpha'; (suitableShips.length == 0) ? 0.4 : 1"/>
+			<bind name="selected" value="shipContextMenuVisible"/>
+			<block>
+				<style>
+					<width value="100%"/>
+					<height value="100%"/>
+					<hitTest value="false"/>
+				</style>
+				<styleClass value="$ContextMenuListItemContent"/>
+				<block type="text">
+					<styleClass value="$TextDefault"/>
+					<styleClass value="$MiddleVAligned"/>
+					<bind name="text" value="tr(toUpperCase('IDS_' + $value + 'S'))"/>
+				</block>
+				<block className="button_expand_h" type="native">
+					<bind name="visible" value="(suitableShips.length &gt; 0)"/>
+					<style>
+						<position value="absolute"/>
+						<right value="3px"/>
+					</style>
+					<styleClass value="$MouseDisable"/>
+					<styleClass value="$MiddleVAligned"/>
+				</block>
+				<style>
+					<flow value="horizontal"/>
+				</style>
+			</block>
+		</block>
+	</block>
+	<block className="ShipContextSubMenu">
+		<bind name="firstEntityDH" value="'dockDataEntity'; CC.dockData"/>
+		<bind name="watchDH" value="'isShipOverviewEnabled';  ['dockDataEntity.dockData.evIsShipOverviewEnabledChanged']; dockDataEntity.dockData.isShipOverviewEnabled"/>
+		<bind name="transition" value="isShipOverviewEnabled; isShipOverviewEnabled ? 0.4 : 0.25; {alpha: 1}; {alpha: 0}; {alpha: 1}; SC.Common.EASING_FUNCTIONS.IN_QUAD; !isShipOverviewEnabled &amp;&amp; !(inPort) ? 0.15 : 0.5"/>
+		<bind name="style" value="'hitTest'; !isShipOverviewEnabled"/>
+		<styleClass value="$RightSubMenuBehaviour"/>
+		<styleClass value="$ContextMenuDimentions"/>
+		<block className="MenuBg">
+			<styleClass value="$FullsizeAbsolute"/>
+			<bind name="instance" value="'InfotipBg'; false ? {} : null"/>
+			<bind name="instance" value="'ContextMenuBg'; !(false) ? {} : null"/>
+		</block>
+		<!--mod-->
+		<block>
+			<style>
+				<width value="100%"/>
+				<maxHeight value="800"/>
+				<flow value="vertical"/>
+				<scrollbar value="ModernScrollBar"/>
+				<scrollbarAlign value="right"/>
+				<scrollbarController value="lesta.unbound.style.UbScrollingControllerChat"/>
+				<scrollArea value="ModernScrollArea"/>
+				<scrollbarTrackMode value="scrollToCursor"/>
+				<wheelScrollSpeed value="30"/>
+				<overflow value="scroll"/>
+				<layout value="lesta.unbound.layout.measure.CarouselVariableItemSizeLayout"/>
+			</style>
+			<bind name="repeat" value="_suitableShips; 'ShipMenuItem'"/>
+		</block>
+		<!--mod-->
+	</block>
+</ui>
